@@ -31,6 +31,10 @@ Installation
 
     pip install git+https://github.com/jcrichard/pyrb
 
+ Or using ``uv`` (recommended for Python 3.12+):
+
+    uv add git+https://github.com/jcrichard/pyrb
+
 
 Usage
 ------------------
