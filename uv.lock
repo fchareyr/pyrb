@@ -213,13 +213,6 @@ dependencies = [
     { name = "scipy" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-]
-
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
@@ -232,13 +225,9 @@ requires-dist = [
     { name = "numba", specifier = ">=0.61.0" },
     { name = "numpy", specifier = ">=2.2.0" },
     { name = "pandas", specifier = ">=2.3.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.2.0" },
     { name = "quadprog", specifier = ">=0.1.13" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" },
     { name = "scipy", specifier = ">=1.16.0" },
 ]
-provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
