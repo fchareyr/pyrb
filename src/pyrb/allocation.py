@@ -4,9 +4,10 @@ from abc import abstractmethod
 import numpy as np
 import scipy.optimize as optimize
 
-from . import tools, validation
-from .settings import BISECTION_UPPER_BOUND, MAXITER_BISECTION
-from .solvers import solve_rb_admm_ccd, solve_rb_admm_qp, solve_rb_ccd
+import pyrb.tools as tools
+import pyrb.validation as validation
+from pyrb.settings import BISECTION_UPPER_BOUND, MAXITER_BISECTION
+from pyrb.solvers import solve_rb_admm_ccd, solve_rb_admm_qp, solve_rb_ccd
 
 
 class RiskBudgetAllocation:

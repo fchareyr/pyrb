@@ -3,8 +3,8 @@ import logging
 import numba
 import numpy as np
 
-from . import tools
-from .settings import ADMM_TOL, CCD_COVERGENCE_TOL, MAX_ITER, MAX_WEIGHT
+import pyrb.tools as tools
+from pyrb.settings import ADMM_TOL, CCD_COVERGENCE_TOL, MAX_ITER, MAX_WEIGHT
 
 
 @numba.njit

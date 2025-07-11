@@ -1,6 +1,5 @@
 import numpy as np
-
-from .settings import RISK_BUDGET_TOL
+from pyrb.settings import RISK_BUDGET_TOL
 
 
 def check_covariance(cov):

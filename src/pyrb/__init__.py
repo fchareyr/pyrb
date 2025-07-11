@@ -1,4 +1,4 @@
-from .allocation import (
+from pyrb.allocation import (
     ConstrainedRiskBudgeting,
     EqualRiskContribution,
     RiskBudgetAllocation,
