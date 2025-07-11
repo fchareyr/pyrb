@@ -16,8 +16,8 @@
 
 ## Developer Workflow
 - **Install dependencies:**
-  - Recommended: `uv add git+https://github.com/jcrichard/pyrb` (for Python 3.12+)
-  - Or: `pip install -e .[dev]`
+  - **Always use `uv` for dependency management. Never use `pip`, `conda`, or `poetry`.**
+  - Install: `uv add git+https://github.com/jcrichard/pyrb`
 - **Run tests:** `pytest`
 - **Lint/format:** `ruff format` and `ruff check --fix`
 - **CI:** GitHub Actions runs tests and linting on push/PR; Dependabot updates dependencies.
