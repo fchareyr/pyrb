@@ -1,7 +1,7 @@
 Constrained and Unconstrained Risk Budgeting Allocation in Python
 ================
 
-[![Actions Status](https://github.com/fchareyr/pyrb/workflows/Python%20application/badge.svg)](https://github.com/fchareyr/pyrb/actions)
+[![Actions Status](https://github.com/fchareyr/pyrb/workflows/CI/badge.svg)](https://github.com/fchareyr/pyrb/actions)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
