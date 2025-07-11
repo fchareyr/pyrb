@@ -4,6 +4,14 @@ from .settings import RISK_BUDGET_TOL
 
 
 def check_covariance(cov):
+    """Check if the covariance matrix is valid.
+
+    Args:
+        cov: Covariance matrix to validate.
+
+    Raises:
+        ValueError: If matrix is not square or contains missing values.
+    """
     if cov.shape[0] != cov.shape[1]:
         raise ValueError("The covariance matrix is not squared")
     if np.isnan(cov).sum().sum() > 0:
@@ -11,6 +19,15 @@ def check_covariance(cov):
 
 
 def check_expected_return(mu, n):
+    """Check if the expected return vector is valid.
+
+    Args:
+        mu: Expected return vector to validate.
+        n: Number of assets.
+
+    Raises:
+        ValueError: If vector size doesn't match number of assets or contains missing values.
+    """
     if mu is None:
         return
     if n != len(mu):
@@ -22,6 +39,16 @@ def check_expected_return(mu, n):
 
 
 def check_constraints(C, d, n):
+    """Check if the constraint matrix and vector are valid.
+
+    Args:
+        C: Constraint matrix.
+        d: Constraint vector.
+        n: Number of assets.
+
+    Raises:
+        ValueError: If matrix dimensions don't match or contain missing values.
+    """
     if C is None:
         return
     if n != C.shape[1]:
@@ -31,6 +58,15 @@ def check_constraints(C, d, n):
 
 
 def check_bounds(bounds, n):
+    """Check if the bounds array is valid.
+
+    Args:
+        bounds: Bounds array to validate.
+        n: Number of assets.
+
+    Raises:
+        ValueError: If bounds dimensions don't match or contain invalid values.
+    """
     if bounds is None:
         return
     if n != bounds.shape[0]:
@@ -44,6 +80,15 @@ def check_bounds(bounds, n):
 
 
 def check_risk_budget(riskbudgets, n):
+    """Check if the risk budget vector is valid.
+
+    Args:
+        riskbudgets: Risk budget vector to validate.
+        n: Number of assets.
+
+    Raises:
+        ValueError: If vector size doesn't match number of assets or contains invalid values.
+    """
     if riskbudgets is None:
         return
     if np.isnan(riskbudgets).sum() > 0:

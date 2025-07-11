@@ -9,21 +9,18 @@ from .settings import ADMM_TOL, CCD_COVERGENCE_TOL, MAX_ITER, MAX_WEIGHT
 
 @numba.njit
 def accelarate(_varphi, r, s, u, alpha=10, tau=2):
-    """
-    Update varphy and dual error for accelerating convergence after ADMM steps.
+    """Update varphy and dual error for accelerating convergence after ADMM steps.
 
-    Parameters
-    ----------
-    _varphi
-    r: primal_error.
-    s: dual error.
-    u: primal_error.
-    alpha: error treshld.
-    tau: scaling parameter.
+    Args:
+        _varphi: Current varphi value.
+        r: Primal error.
+        s: Dual error.
+        u: Primal error.
+        alpha: Error threshold (default 10).
+        tau: Scaling parameter (default 2).
 
-    Returns
-    -------
-    updated varphy and primal_error.
+    Returns:
+        tuple: Updated varphi and primal_error.
     """
 
     primal_error = np.sum(r**2)
@@ -56,48 +53,37 @@ def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, pi, bounds, lambda_log, cov
         x_tilde = np.maximum(np.minimum(x_tilde, bounds[i, 1]), bounds[i, 0])
 
         x[i] = x_tilde
-        Sx = np.dot(cov, x)
-        sigma_x = np.sqrt(np.dot(Sx, x))
+        Sx = np.dot(np.ascontiguousarray(cov), np.ascontiguousarray(x))
+        sigma_x = np.sqrt(np.dot(np.ascontiguousarray(Sx), np.ascontiguousarray(x)))
     return x, Sx, sigma_x
 
 
 def solve_rb_ccd(
     cov, budgets=None, pi=None, c=1.0, bounds=None, lambda_log=1.0, _varphi=0.0
 ):
-    """
-    Solve the risk budgeting problem for standard deviation risk-based measure with bounds constraints using cyclical
-    coordinate descent (CCD). It is corresponding to solve equation (17) in the paper.
+    """Solve the risk budgeting problem using cyclical coordinate descent.
 
-    By default the function solve the ERC portfolio or the RB portfolio if budgets are given.
+    Solves the risk budgeting problem for standard deviation risk-based measure with
+    bounds constraints using cyclical coordinate descent (CCD). It corresponds to
+    solving equation (17) in the paper.
 
-    Parameters
-    ----------
-    cov : array, shape (n, n)
-        Covariance matrix of the returns.
+    By default the function solves the ERC portfolio or the RB portfolio if budgets are given.
 
-    budgets : array, shape (n,)
-        Risk budgets for each asset (the default is None which implies equal risk budget).
+    Args:
+        cov: Covariance matrix of the returns, shape (n, n).
+        budgets: Risk budgets for each asset, shape (n,).
+            Default is None which implies equal risk budget.
+        pi: Expected excess return for each asset, shape (n,).
+            Default is None which implies 0 for each asset.
+        c: Risk aversion parameter, default is 1.
+        bounds: Array of minimum and maximum bounds, shape (n, 2).
+            If None the default bounds are [0,1].
+        lambda_log: Log penalty parameter.
+        _varphi: This parameter is only useful for solving ADMM-CCD algorithm,
+            should be zeros otherwise.
 
-    pi : array, shape (n,)
-        Expected excess return for each asset (the default is None which implies 0 for each asset).
-
-    c : float
-        Risk aversion parameter equals to one by default.
-
-    bounds : array, shape (n, 2)
-        Array of minimum and maximum bounds. If None the default bounds are [0,1].
-
-    lambda_log : float
-        Log penalty parameter.
-
-    _varphi : float
-        This parameters is only useful for solving ADMM-CCD algorithm should be zeros otherwise.
-
-    Returns
-    -------
-    x : aray shape(n,)
-        The array of optimal solution.
-
+    Returns:
+        Optimal solution array, shape (n,).
     """
 
     n = cov.shape[0]
