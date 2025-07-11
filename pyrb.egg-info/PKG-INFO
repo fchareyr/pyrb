@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: pyrb
+Version: 1.0.1
+Summary: pyrb is a Python library to solve constrained risk budgeting problem.
+Home-page: https://github.com/jcrichard/pyrb
+Author: Jean-Charles Richard
+Author-email: jcharles.richard@gmail.com
+License: Apache License, Version 2.0
+Classifier: Programming Language :: Python :: 3.4
+License-File: LICENSE
+
+pyrb is a Python library to solve constrained risk budgeting problem.

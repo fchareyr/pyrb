@@ -1,0 +1,3 @@
+numba>=0.4
+pandas>=0.19
+quadprog>=0.1.0
