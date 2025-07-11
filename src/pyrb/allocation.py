@@ -71,8 +71,8 @@ class RiskBudgetAllocation:
         x = self.x
         cov = self.cov
         x = tools.to_column_matrix(x)
-        cov = np.matrix(cov)
-        RC = np.multiply(x, cov * x)
+        cov = np.asarray(cov)
+        RC = np.multiply(x, cov @ x)
         return np.sum(tools.to_array(RC))
 
     def get_volatility(self):
@@ -122,8 +122,8 @@ class EqualRiskContribution(RiskBudgetAllocation):
         x = self.x
         cov = self.cov
         x = tools.to_column_matrix(x)
-        cov = np.matrix(cov)
-        RC = np.multiply(x, cov * x) / self.get_volatility()
+        cov = np.asarray(cov)
+        RC = np.multiply(x, cov @ x) / self.get_volatility()
         if scale:
             RC = RC / RC.sum()
         return tools.to_array(RC)
@@ -157,8 +157,8 @@ class RiskBudgeting(RiskBudgetAllocation):
         x = self.x
         cov = self.cov
         x = tools.to_column_matrix(x)
-        cov = np.matrix(cov)
-        RC = np.multiply(x, cov * x) / self.get_volatility()
+        cov = np.asarray(cov)
+        RC = np.multiply(x, cov @ x) / self.get_volatility()
         if scale:
             RC = RC / RC.sum()
         return tools.to_array(RC)
@@ -198,8 +198,8 @@ class RiskBudgetingWithER(RiskBudgetAllocation):
         x = self.x
         cov = self.cov
         x = tools.to_column_matrix(x)
-        cov = np.matrix(cov)
-        RC = np.multiply(x, cov * x) / self.get_volatility() * self.c - self.x * self.pi
+        cov = np.asarray(cov)
+        RC = np.multiply(x, cov @ x) / self.get_volatility() * self.c - self.x * self.pi
         if scale:
             RC = RC / RC.sum()
         return tools.to_array(RC)
@@ -359,13 +359,13 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
         x = self.x
         cov = self.cov
         x = tools.to_column_matrix(x)
-        cov = np.matrix(cov)
+        cov = np.asarray(cov)
 
         if self.solver == "admm_qp":
-            RC = np.multiply(x, cov * x) - self.c * self.x * self.pi
+            RC = np.multiply(x, cov @ x) - self.c * self.x * self.pi
         else:
             RC = np.multiply(
-                x, cov * x
+                x, cov @ x
             ).T / self.get_volatility() * self.c - tools.to_array(
                 self.x.T
             ) * tools.to_array(self.pi)

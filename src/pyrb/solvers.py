@@ -56,8 +56,8 @@ def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, pi, bounds, lambda_log, cov
         x_tilde = np.maximum(np.minimum(x_tilde, bounds[i, 1]), bounds[i, 0])
 
         x[i] = x_tilde
-        Sx = np.dot(cov, x)
-        sigma_x = np.sqrt(np.dot(Sx, x))
+        Sx = np.dot(np.ascontiguousarray(cov), np.ascontiguousarray(x))
+        sigma_x = np.sqrt(np.dot(np.ascontiguousarray(Sx), np.ascontiguousarray(x)))
     return x, Sx, sigma_x
 
 

@@ -4,13 +4,19 @@ import quadprog
 
 def to_column_matrix(x):
     """Return x as a matrix columns."""
-    x = np.matrix(x)
-    if x.shape[1] != 1:
-        x = x.T
-    if x.shape[1] == 1:
-        return x
+    x = np.asarray(x)
+    if x.ndim == 1:
+        x = x.reshape(-1, 1)
+    elif x.ndim == 2:
+        if x.shape[1] != 1:
+            x = x.T
+        if x.shape[1] == 1:
+            return x
+        else:
+            raise ValueError("x is not a vector")
     else:
         raise ValueError("x is not a vector")
+    return x
 
 
 def to_array(x):
