@@ -1,9 +1,9 @@
 Constrained and Unconstrained Risk Budgeting Allocation in Python
 ================
 
-[![Actions Status](https://github.com/jcrichard/pyrb/workflows/Python%20application/badge.svg)](https://github.com/jcrichard/pyrb/actions)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Actions Status](https://github.com/fchareyr/pyrb/workflows/Python%20application/badge.svg)](https://github.com/fchareyr/pyrb/actions)
+[![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
 This repository contains the code for solving constrained risk budgeting
@@ -45,6 +45,49 @@ Usage
     ERC.solve()
     ERC.get_risk_contributions()
     ERC.get_volatility()
+
+
+Development
+------------------
+
+This project uses modern Python development tools:
+
+### Code Quality
+- **ruff**: For linting and formatting
+- **pytest**: For testing
+
+### Installation for Development
+```bash
+# Clone the repository
+git clone https://github.com/fchareyr/pyrb.git
+cd pyrb
+
+# Install in development mode
+pip install -e .[dev]
+```
+
+### Running Tests
+```bash
+pytest
+```
+
+### Code Formatting and Linting
+```bash
+# Format code
+ruff format
+
+# Lint code
+ruff check
+
+# Fix linting issues automatically
+ruff check --fix
+```
+
+### CI/CD
+- GitHub Actions workflow runs on every push and pull request
+- Tests are run on Python 3.12 and 3.13
+- Code must pass linting and formatting checks
+- Dependabot automatically updates dependencies
 
 
 References

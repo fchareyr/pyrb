@@ -1,6 +1,5 @@
-import quadprog
-
 import numpy as np
+import quadprog
 
 
 def to_column_matrix(x):
@@ -30,9 +29,9 @@ def quadprog_solve_qp(P, q, G=None, h=None, A=None, b=None, bounds=None):
     """Quadprog helper."""
     n = P.shape[0]
     if bounds is not None:
-        I = np.eye(n)
-        LB = -I
-        UB = I
+        identity = np.eye(n)
+        LB = -identity
+        UB = identity
         if G is None:
             G = np.vstack([LB, UB])
             h = np.array(np.hstack([-to_array(bounds[:, 0]), to_array(bounds[:, 1])]))

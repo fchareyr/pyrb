@@ -54,7 +54,5 @@ def check_risk_budget(riskbudgets, n):
         raise ValueError("Risk budget size is not equal to the number of asset.")
     if all(v < RISK_BUDGET_TOL for v in riskbudgets):
         raise ValueError(
-            "One of the budget is smaller than {}. If you want a risk budget of 0 please remove the asset.".format(
-                RISK_BUDGET_TOL
-            )
+            f"One of the budget is smaller than {RISK_BUDGET_TOL}. If you want a risk budget of 0 please remove the asset."
         )

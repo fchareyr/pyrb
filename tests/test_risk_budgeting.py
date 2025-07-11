@@ -1,10 +1,10 @@
 import numpy as np
+
 from pyrb.allocation import (
+    ConstrainedRiskBudgeting,
     EqualRiskContribution,
     RiskBudgeting,
-    ConstrainedRiskBudgeting,
 )
-
 
 CORRELATIONMATRIX = np.array(
     [
