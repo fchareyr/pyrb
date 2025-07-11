@@ -94,7 +94,7 @@ class RiskBudgetAllocation:
         else:
             x = self.x
             x = tools.to_column_matrix(x)
-        return float(x.T * self.pi)
+        return float(x.T @ self.pi)
 
     def __str__(self):
         return (
