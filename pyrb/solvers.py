@@ -4,7 +4,7 @@ import numba
 import numpy as np
 
 from . import tools
-from .settings import CCD_COVERGENCE_TOL, MAX_ITER, MAX_WEIGHT, ADMM_TOL
+from .settings import ADMM_TOL, CCD_COVERGENCE_TOL, MAX_ITER, MAX_WEIGHT
 
 
 @numba.njit
@@ -26,7 +26,7 @@ def accelarate(_varphi, r, s, u, alpha=10, tau=2):
     updated varphy and primal_error.
     """
 
-    primal_error = np.sum(r ** 2)
+    primal_error = np.sum(r**2)
     dual_error = np.sum(s * s)
     if primal_error > alpha * dual_error:
         _varphi = _varphi * tau
@@ -37,8 +37,10 @@ def accelarate(_varphi, r, s, u, alpha=10, tau=2):
     return _varphi, u
 
 
-@numba.jit('Tuple((float64[:], float64[:], float64))(float64[:], float64, float64[:], float64, float64, float64[:], float64[:], float64[:], float64[:,:], float64, float64[:,:])',
-      nopython=True)
+@numba.jit(
+    "Tuple((float64[:], float64[:], float64))(float64[:], float64, float64[:], float64, float64, float64[:], float64[:], float64[:], float64[:,:], float64, float64[:,:])",
+    nopython=True,
+)
 def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, pi, bounds, lambda_log, cov):
     """
     Internal numba function for computing one cycle of the CCD algorithm.
@@ -49,7 +51,7 @@ def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, pi, bounds, lambda_log, cov
         alpha = c * var[i] + _varphi * sigma_x
         beta = c * (Sx[i] - x[i] * var[i]) - pi[i] * sigma_x
         gamma_ = -lambda_log * budgets[i] * sigma_x
-        x_tilde = (-beta + np.sqrt(beta ** 2 - 4 * alpha * gamma_)) / (2 * alpha)
+        x_tilde = (-beta + np.sqrt(beta**2 - 4 * alpha * gamma_)) / (2 * alpha)
 
         x_tilde = np.maximum(np.minimum(x_tilde, bounds[i, 1]), bounds[i, 0])
 
@@ -141,7 +143,7 @@ def solve_rb_ccd(
         iters = iters + 1
         if iters >= MAX_ITER:
             logging.info(
-                "Maximum iteration reached during the CCD descent: {}".format(MAX_ITER)
+                f"Maximum iteration reached during the CCD descent: {MAX_ITER}"
             )
             break
 
@@ -229,7 +231,6 @@ def solve_rb_admm_qp(
     identity_matrix = np.identity(n)
 
     while not cvg:
-
         # x-update
         x = tools.quadprog_solve_qp(
             cov + _varphi * identity_matrix,
@@ -257,7 +258,7 @@ def solve_rb_admm_qp(
 
         iters = iters + 1
         if iters >= MAX_ITER:
-            logging.info("Maximum iteration reached: {}".format(MAX_ITER))
+            logging.info(f"Maximum iteration reached: {MAX_ITER}")
             break
 
         # parameters update
@@ -333,7 +334,6 @@ def solve_rb_admm_ccd(
     iters = 0
     pi_vec = tools.to_array(pi)
     while not cvg:
-
         # x-update
         x = solve_rb_ccd(
             cov,
@@ -363,7 +363,7 @@ def solve_rb_admm_ccd(
 
         iters = iters + 1
         if iters >= MAX_ITER:
-            logging.info("Maximum iteration reached: {}".format(MAX_ITER))
+            logging.info(f"Maximum iteration reached: {MAX_ITER}")
             break
 
         # parameters update

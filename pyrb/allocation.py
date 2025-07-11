@@ -4,10 +4,9 @@ from abc import abstractmethod
 import numpy as np
 import scipy.optimize as optimize
 
-from . import tools
-from . import validation
+from . import tools, validation
 from .settings import BISECTION_UPPER_BOUND, MAXITER_BISECTION
-from .solvers import solve_rb_ccd, solve_rb_admm_qp, solve_rb_admm_ccd
+from .solvers import solve_rb_admm_ccd, solve_rb_admm_qp, solve_rb_ccd
 
 
 class RiskBudgetAllocation:
@@ -91,17 +90,11 @@ class RiskBudgetAllocation:
 
     def __str__(self):
         return (
-            "solution x: {}\n"
-            "lambda star: {}\n"
-            "risk contributions: {}\n"
-            "sigma(x): {}\n"
-            "sum(x): {}\n"
-        ).format(
-            np.round(self.x * 100, 4),
-            np.round(self.lambda_star * 100, 4),
-            np.round(self.get_risk_contributions() * 100, 4),
-            np.round(self.get_volatility() * 100, 4),
-            np.round(self.x.sum() * 100, 4),
+            f"solution x: {np.round(self.x * 100, 4)}\n"
+            f"lambda star: {np.round(self.lambda_star * 100, 4)}\n"
+            f"risk contributions: {np.round(self.get_risk_contributions() * 100, 4)}\n"
+            f"sigma(x): {np.round(self.get_volatility() * 100, 4)}\n"
+            f"sum(x): {np.round(self.x.sum() * 100, 4)}\n"
         )
 
 
@@ -212,8 +205,9 @@ class RiskBudgetingWithER(RiskBudgetAllocation):
         return tools.to_array(RC)
 
     def __str__(self):
-        return super().__str__() + "mu(x): {}\n".format(
-            np.round(self.get_expected_return() * 100, 4)
+        return (
+            super().__str__()
+            + f"mu(x): {np.round(self.get_expected_return() * 100, 4)}\n"
         )
 
 
@@ -280,10 +274,10 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
     def __str__(self):
         if self.C is not None:
             return (
-                "solver: {}\n".format(self.solver)
+                f"solver: {self.solver}\n"
                 + "----------------------------\n"
                 + super().__str__()
-                + "C@x: {}\n".format(self.C @ self.x)
+                + f"C@x: {self.C @ self.x}\n"
             )
         else:
             return super().__str__()
@@ -374,9 +368,7 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
                 x, cov * x
             ).T / self.get_volatility() * self.c - tools.to_array(
                 self.x.T
-            ) * tools.to_array(
-                self.pi
-            )
+            ) * tools.to_array(self.pi)
         if scale:
             RC = RC / RC.sum()
 
