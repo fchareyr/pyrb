@@ -1,22 +1,14 @@
 import logging
-from typing import Any
 
 import numba
 import numpy as np
 
 from . import tools
-from .settings import ADMM_TOL, CCD_CONVERGENCE_TOL, MAX_ITER, MAX_WEIGHT
+from .settings import ADMM_TOL, CCD_COVERGENCE_TOL, MAX_ITER, MAX_WEIGHT
 
 
-@numba.njit("Tuple((float64, float64[:]))(float64, float64[:], float64[:], float64[:], float64, float64)")
-def accelerate(
-    _varphi: float,
-    r: np.ndarray[Any, Any],
-    s: np.ndarray[Any, Any],
-    u: np.ndarray[Any, Any],
-    alpha: float = 10,
-    tau: float = 2,
-) -> tuple[float, np.ndarray[Any, Any]]:
+@numba.njit
+def accelarate(_varphi, r, s, u, alpha=10, tau=2):
     """Update varphy and dual error for accelerating convergence after ADMM steps.
 
     Args:
@@ -42,20 +34,11 @@ def accelerate(
     return _varphi, u
 
 
-@numba.jit("Tuple((float64[:], float64[:], float64))(float64[:], float64, float64[:], float64, float64, float64[:], float64[:], float64[:], float64[:,:], float64, float64[:,:])", nopython=True)
-def _cycle(
-    x: np.ndarray[Any, Any],
-    c: float,
-    var: np.ndarray[Any, Any],
-    _varphi: float,
-    sigma_x: float,
-    sx: np.ndarray[Any, Any],
-    budgets: np.ndarray[Any, Any],
-    expected_returns: np.ndarray[Any, Any],
-    bounds: np.ndarray[Any, Any],
-    llambda_log: float,
-    cov: np.ndarray[Any, Any],
-) -> tuple[np.ndarray[Any, Any], np.ndarray[Any, Any], float]:
+@numba.jit(
+    "Tuple((float64[:], float64[:], float64))(float64[:], float64, float64[:], float64, float64, float64[:], float64[:], float64[:], float64[:,:], float64, float64[:,:])",
+    nopython=True,
+)
+def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, pi, bounds, lambda_log, cov):
     """
     Internal numba function for computing one cycle of the CCD algorithm.
 
@@ -63,27 +46,21 @@ def _cycle(
     n = len(x)
     for i in range(n):
         alpha = c * var[i] + _varphi * sigma_x
-        beta = c * (sx[i] - x[i] * var[i]) - expected_returns[i] * sigma_x
-        gamma_ = -llambda_log * budgets[i] * sigma_x
+        beta = c * (Sx[i] - x[i] * var[i]) - pi[i] * sigma_x
+        gamma_ = -lambda_log * budgets[i] * sigma_x
         x_tilde = (-beta + np.sqrt(beta**2 - 4 * alpha * gamma_)) / (2 * alpha)
 
         x_tilde = np.maximum(np.minimum(x_tilde, bounds[i, 1]), bounds[i, 0])
 
         x[i] = x_tilde
-        sx = np.dot(np.ascontiguousarray(cov), np.ascontiguousarray(x))
-        sigma_x = np.sqrt(np.dot(np.ascontiguousarray(sx), np.ascontiguousarray(x)))
-    return x, sx, sigma_x
+        Sx = np.dot(np.ascontiguousarray(cov), np.ascontiguousarray(x))
+        sigma_x = np.sqrt(np.dot(np.ascontiguousarray(Sx), np.ascontiguousarray(x)))
+    return x, Sx, sigma_x
 
 
 def solve_rb_ccd(
-    cov: np.ndarray[Any, Any],
-    budgets: np.ndarray[Any, Any] | None = None,
-    expected_returns: np.ndarray[Any, Any] | None = None,
-    risk_aversion: float = 1.0,
-    bounds: np.ndarray[Any, Any] | None = None,
-    llambda_log: float = 1.0,
-    _varphi: float = 0.0,
-) -> np.ndarray[Any, Any]:
+    cov, budgets=None, pi=None, c=1.0, bounds=None, lambda_log=1.0, _varphi=0.0
+):
     """Solve the risk budgeting problem using cyclical coordinate descent.
 
     Solves the risk budgeting problem for standard deviation risk-based measure with
@@ -96,12 +73,12 @@ def solve_rb_ccd(
         cov: Covariance matrix of the returns, shape (n, n).
         budgets: Risk budgets for each asset, shape (n,).
             Default is None which implies equal risk budget.
-        expected_returns: Expected excess return for each asset, shape (n,).
+        pi: Expected excess return for each asset, shape (n,).
             Default is None which implies 0 for each asset.
-        risk_aversion: Risk aversion parameter, default is 1.
+        c: Risk aversion parameter, default is 1.
         bounds: Array of minimum and maximum bounds, shape (n, 2).
             If None the default bounds are [0,1].
-        llambda_log: Log penalty parameter.
+        lambda_log: Log penalty parameter.
         _varphi: This parameter is only useful for solving ADMM-CCD algorithm,
             should be zeros otherwise.
 
@@ -115,7 +92,7 @@ def solve_rb_ccd(
         bounds = np.zeros((n, 2))
         bounds[:, 1] = MAX_WEIGHT
     else:
-        bounds = np.array(bounds, dtype=float)
+        bounds = np.array(bounds * 1.0)
 
     if budgets is None:
         budgets = np.array([1.0] * n) / n
@@ -123,35 +100,31 @@ def solve_rb_ccd(
         budgets = np.array(budgets)
     budgets = budgets / np.sum(budgets)
 
-    if (risk_aversion is None) | (expected_returns is None):
-        risk_aversion = 1.0
-        expected_returns = np.array([0.0] * n)
+    if (c is None) | (pi is None):
+        c = 1.0
+        pi = np.array([0.0] * n)
     else:
-        risk_aversion = float(risk_aversion)
-        expected_returns = np.array(expected_returns).astype(float)
+        c = float(c)
+        pi = np.array(pi).astype(float)
 
     # initial value equals to 1/vol portfolio
     x = 1 / np.diag(cov) ** 0.5 / (np.sum(1 / np.diag(cov) ** 0.5))
     x0 = x / 100
 
-    budgets_arr = tools.to_array(budgets)
-    expected_returns_arr = tools.to_array(expected_returns)
+    budgets = tools.to_array(budgets)
+    pi = tools.to_array(pi)
     var = np.array(np.diag(cov))
-    sx = np.dot(cov, x)
-    sigma_x = np.sqrt(np.dot(sx, x))
-    if budgets_arr is None:
-        raise ValueError("budgets cannot be None after conversion")
-    if expected_returns_arr is None:
-        raise ValueError("expected_returns cannot be None after conversion")
+    Sx = tools.to_array(np.dot(cov, x))
+    sigma_x = np.sqrt(np.dot(Sx, x))
 
     cvg = False
     iters = 0
 
     while not cvg:
-        x, sx, sigma_x = _cycle(
-            x, risk_aversion, var, _varphi, sigma_x, sx, budgets_arr, expected_returns_arr, bounds, llambda_log, cov
+        x, Sx, sigma_x = _cycle(
+            x, c, var, _varphi, sigma_x, Sx, budgets, pi, bounds, lambda_log, cov
         )
-        cvg = np.sum(np.array(x - x0) ** 2) <= CCD_CONVERGENCE_TOL
+        cvg = np.sum(np.array(x - x0) ** 2) <= CCD_COVERGENCE_TOL
         x0 = x.copy()
         iters = iters + 1
         if iters >= MAX_ITER:
@@ -160,23 +133,23 @@ def solve_rb_ccd(
             )
             break
 
-    return x
+    return tools.to_array(x)
 
 
 def solve_rb_admm_qp(
-    cov: np.ndarray[Any, Any],
-    budgets: np.ndarray[Any, Any] | None = None,
-    expected_returns: np.ndarray[Any, Any] | None = None,
-    risk_aversion: float = 1.0,
-    c: np.ndarray[Any, Any] | None = None,
-    d: np.ndarray[Any, Any] | None = None,
-    bounds: np.ndarray[Any, Any] | None = None,
-    llambda_log: float = 1.0,
-    _varphi: float = 1.0,
-) -> np.ndarray[Any, Any]:
+    cov,
+    budgets=None,
+    pi=None,
+    c=None,
+    C=None,
+    d=None,
+    bounds=None,
+    lambda_log=1,
+    _varphi=1,
+):
     """
     Solve the constrained risk budgeting constraint for the Mean Variance risk measure:
-    The risk measure is given by R(x) =  x^T cov x - c * expected_returns^T x
+    The risk measure is given by R(x) =  x^T cov x - c * pi^T x
 
     Parameters
     ----------
@@ -186,10 +159,10 @@ def solve_rb_admm_qp(
     budgets : array, shape (n,)
         Risk budgets for each asset (the default is None which implies equal risk budget).
 
-    expected_returns : array, shape (n,)
+    pi : array, shape (n,)
         Expected excess return for each asset (the default is None which implies 0 for each asset).
 
-    risk_aversion : float
+    c : float
         Risk aversion parameter equals to one by default.
 
     C : array, shape (p, n)
@@ -202,7 +175,7 @@ def solve_rb_admm_qp(
     bounds : array, shape (n, 2)
         Array of minimum and maximum bounds. If None the default bounds are [0,1].
 
-    llambda_log : float
+    lambda_log : float
         Log penalty parameter.
 
     _varphi : float
@@ -210,15 +183,15 @@ def solve_rb_admm_qp(
 
     Returns
     -------
-    x : array shape(n,)
+    x : aray shape(n,)
         The array of optimal solution.
 
     """
 
-def proximal_log(a: float, b: np.ndarray[Any, Any], c: float, budgets: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
-    delta = b * b - 4 * a * c * budgets
-    x = (b + np.sqrt(delta)) / (2 * a)
-    return x
+    def proximal_log(a, b, c, budgets):
+        delta = b * b - 4 * a * c * budgets
+        x = (b + np.sqrt(delta)) / (2 * a)
+        return x
 
     cov = np.array(cov)
     n = np.shape(cov)[0]
@@ -227,67 +200,73 @@ def proximal_log(a: float, b: np.ndarray[Any, Any], c: float, budgets: np.ndarra
         bounds = np.zeros((n, 2))
         bounds[:, 1] = MAX_WEIGHT
     else:
-        bounds = np.array(bounds, dtype=float)
+        bounds = np.array(bounds * 1.0)
 
     if budgets is None:
         budgets = np.array([1.0 / n] * n)
 
     x0 = 1 / np.diag(cov) / (np.sum(1 / np.diag(cov)))
+
     x = x0 / 100
     z = x.copy()
-    zprev = z.copy()
+    zprev = z
     u = np.zeros(len(x))
     cvg = False
     iters = 0
-    expected_returns_vec = tools.to_array(expected_returns)
-    if expected_returns_vec is None:
-        expected_returns_vec = np.zeros(n)
+    pi_vec = tools.to_array(pi)
     identity_matrix = np.identity(n)
+
     while not cvg:
         # x-update
         x = tools.quadprog_solve_qp(
             cov + _varphi * identity_matrix,
-            risk_aversion * expected_returns_vec + _varphi * (z - u),
-            g=c,
+            c * pi_vec + _varphi * (z - u),
+            G=C,
             h=d,
             bounds=bounds,
         )
+
         # z-update
-        z = proximal_log(_varphi, (x + u) * _varphi, -llambda_log, budgets)
+        z = proximal_log(_varphi, (x + u) * _varphi, -lambda_log, budgets)
+
         # u-update
         r = x - z
         s = _varphi * (z - zprev)
         u += x - z
+
         # convergence check
-        cvg1 = np.sum((x - x0) ** 2)
-        cvg2 = np.sum((x - z) ** 2)
-        cvg3 = np.sum((z - zprev) ** 2)
+        cvg1 = sum((x - x0) ** 2)
+        cvg2 = sum((x - z) ** 2)
+        cvg3 = sum((z - zprev) ** 2)
         cvg = np.max([cvg1, cvg2, cvg3]) <= ADMM_TOL
         x0 = x.copy()
-        zprev = z.copy()
-        iters += 1
+        zprev = z
+
+        iters = iters + 1
         if iters >= MAX_ITER:
             logging.info(f"Maximum iteration reached: {MAX_ITER}")
             break
+
         # parameters update
-        _varphi, u = accelerate(_varphi, r, s, u)
-    return x
+        _varphi, u = accelarate(_varphi, r, s, u)
+
+    return tools.to_array(x)
 
 
 def solve_rb_admm_ccd(
-    cov: np.ndarray[Any, Any],
-    budgets: np.ndarray[Any, Any] | None = None,
-    expected_returns: np.ndarray[Any, Any] | None = None,
-    risk_aversion: float = 1.0,
-    c: np.ndarray[Any, Any] | None = None,
-    d: np.ndarray[Any, Any] | None = None,
-    bounds: np.ndarray[Any, Any] | None = None,
-    llambda_log: float = 1.0,
-    _varphi: float = 1.0,
-) -> np.ndarray[Any, Any]:
+    cov,
+    budgets=None,
+    pi=None,
+    c=None,
+    C=None,
+    d=None,
+    bounds=None,
+    lambda_log=1,
+    _varphi=1,
+):
     """
     Solve the constrained risk budgeting constraint for the standard deviation risk measure:
-    The risk measure is given by R(x) = c * sqrt(x^T cov x) -  expected_returns^T x
+    The risk measure is given by R(x) = c * sqrt(x^T cov x) -  pi^T x
 
     Parameters
     ----------
@@ -299,10 +278,10 @@ def solve_rb_admm_ccd(
     budgets : array, shape (n,)
         Risk budgets for each asset (the default is None which implies equal risk budget).
 
-    expected_returns : array, shape (n,)
+    pi : array, shape (n,)
         Expected excess return for each asset (the default is None which implies 0 for each asset).
 
-    risk_aversion : float
+    c : float
         Risk aversion parameter equals to one by default.
 
     C : array, shape (p, n)
@@ -315,7 +294,7 @@ def solve_rb_admm_ccd(
     bounds : array, shape (n, 2)
         Array of minimum and maximum bounds. If None the default bounds are [0,1].
 
-    llambda_log : float
+    lambda_log : float
         Log penalty parameter.
 
     _varphi : float
@@ -323,52 +302,57 @@ def solve_rb_admm_ccd(
 
     Returns
     -------
-    x : array shape(n,)
+    x : aray shape(n,)
         The array of optimal solution.
 
 
     """
 
     cov = np.array(cov)
-    n = cov.shape[0]
-    if bounds is None:
-        bounds = np.zeros((n, 2))
-        bounds[:, 1] = MAX_WEIGHT
-    else:
-        bounds = np.array(bounds, dtype=float)
-    if budgets is None:
-        budgets = np.array([1.0 / n] * n)
+
     x0 = 1 / np.diag(cov) / (np.sum(1 / np.diag(cov)))
+
     x = x0 / 100
     z = x.copy()
-    zprev = z.copy()
+    zprev = z
     u = np.zeros(len(x))
     cvg = False
     iters = 0
-    expected_returns_vec = tools.to_array(expected_returns)
-    if expected_returns_vec is None:
-        expected_returns_vec = np.zeros_like(x)
-    # Ensure c and d are not None
-    c_arr = c if c is not None else np.zeros((1, n))
-    d_arr = d if d is not None else np.zeros(1)
+    pi_vec = tools.to_array(pi)
     while not cvg:
         # x-update
-        x = tools.proximal_polyhedra(x + u, c_arr, d_arr, a=None, b=None, bound=bounds)
+        x = solve_rb_ccd(
+            cov,
+            budgets=budgets,
+            pi=pi_vec + (_varphi * (z - u)),
+            bounds=bounds,
+            lambda_log=lambda_log,
+            c=c,
+            _varphi=_varphi,
+        )
+
         # z-update
-        z = tools.proximal_polyhedra(x + u, c_arr, d_arr, a=None, b=None, bound=bounds)
+        z = tools.proximal_polyhedra(x + u, C, d, A=None, b=None, bound=bounds)
+
         # u-update
+        r = x - z
+        s = _varphi * (z - zprev)
         u += x - z
+
         # convergence check
-        cvg1 = np.sum((x - x0) ** 2)
-        cvg2 = np.sum((x - z) ** 2)
-        cvg3 = np.sum((z - zprev) ** 2)
+        cvg1 = sum((x - x0) ** 2)
+        cvg2 = sum((x - z) ** 2)
+        cvg3 = sum((z - zprev) ** 2)
         cvg = np.max([cvg1, cvg2, cvg3]) <= ADMM_TOL
         x0 = x.copy()
-        zprev = z.copy()
-        iters += 1
+        zprev = z
+
+        iters = iters + 1
         if iters >= MAX_ITER:
             logging.info(f"Maximum iteration reached: {MAX_ITER}")
             break
+
         # parameters update
-        _varphi, u = accelerate(_varphi, x - z, z - zprev, u)
-    return x
+        _varphi, u = accelarate(_varphi, r, s, u)
+
+    return tools.to_array(x)

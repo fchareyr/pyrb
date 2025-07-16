@@ -52,7 +52,7 @@ def test_rb():
 
 def test_cerb():
     CRB = ConstrainedRiskBudgeting(
-        COVARIANCEMATRIX, budgets=None, expected_returns=None, bounds=BOUNDS
+        COVARIANCEMATRIX, budgets=None, pi=None, bounds=BOUNDS
     )
     CRB.solve()
     np.testing.assert_almost_equal(np.sum(CRB.x), 1)

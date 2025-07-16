@@ -1,10 +1,9 @@
 import numpy as np
-from typing import Any
 
 from .settings import RISK_BUDGET_TOL
 
 
-def check_covariance(cov: np.ndarray[Any, Any]) -> None:
+def check_covariance(cov):
     """Check if the covariance matrix is valid.
 
     Args:
@@ -19,7 +18,7 @@ def check_covariance(cov: np.ndarray[Any, Any]) -> None:
         raise ValueError("The covariance matrix contains missing values")
 
 
-def check_expected_return(mu: np.ndarray[Any, Any] | None, n: int) -> None:
+def check_expected_return(mu, n):
     """Check if the expected return vector is valid.
 
     Args:
@@ -39,26 +38,26 @@ def check_expected_return(mu: np.ndarray[Any, Any] | None, n: int) -> None:
         raise ValueError("The expected returns vector contains missing values")
 
 
-def check_constraints(c: np.ndarray[Any, Any] | None, d: np.ndarray[Any, Any] | None, n: int) -> None:
+def check_constraints(C, d, n):
     """Check if the constraint matrix and vector are valid.
 
     Args:
-        c: Constraint matrix.
+        C: Constraint matrix.
         d: Constraint vector.
         n: Number of assets.
 
     Raises:
         ValueError: If matrix dimensions don't match or contain missing values.
     """
-    if c is None:
+    if C is None:
         return
-    if n != c.shape[1]:
+    if n != C.shape[1]:
         raise ValueError("Number of columns of C is not equal to the number of asset.")
-    if d is not None and len(d) != c.shape[0]:
+    if len(d) != C.shape[0]:
         raise ValueError("Number of rows of C is not equal to the length  of d.")
 
 
-def check_bounds(bounds: np.ndarray[Any, Any] | None, n: int) -> None:
+def check_bounds(bounds, n):
     """Check if the bounds array is valid.
 
     Args:
@@ -80,7 +79,7 @@ def check_bounds(bounds: np.ndarray[Any, Any] | None, n: int) -> None:
         )
 
 
-def check_risk_budget(riskbudgets: np.ndarray[Any, Any] | None, n: int) -> None:
+def check_risk_budget(riskbudgets, n):
     """Check if the risk budget vector is valid.
 
     Args:

@@ -42,58 +42,36 @@ corr = (
 cov = np.outer(vol, vol) * corr
 
 # %%
-inequality_constraints = None
-inequality_values = None
+C = None
+d = None
 
-CRB = ConstrainedRiskBudgeting(
-    cov,
-    inequality_constraints=inequality_constraints,
-    inequality_values=inequality_values,
-)
+CRB = ConstrainedRiskBudgeting(cov, C=C, d=d)
 CRB.solve()
 print(CRB)
 
 # %%
-inequality_constraints = np.array([[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0]])
-inequality_values = [-0.3]
+C = np.array([[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0]])
+d = [-0.3]
 
-CRB = ConstrainedRiskBudgeting(
-    cov,
-    inequality_constraints=inequality_constraints,
-    inequality_values=inequality_values,
-)
+CRB = ConstrainedRiskBudgeting(cov, C=C, d=d)
 CRB.solve()
 print(CRB)
 
 # %%
-inequality_constraints = np.array(
-    [[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0], [1, -1, 0, 0, 1, -1, 0, 0]]
-)
-inequality_values = [-0.3, -0.05]
+C = np.array([[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0], [1, -1, 0, 0, 1, -1, 0, 0]])
+d = [-0.3, -0.05]
 
-CRB = ConstrainedRiskBudgeting(
-    cov,
-    inequality_constraints=inequality_constraints,
-    inequality_values=inequality_values,
-)
+CRB = ConstrainedRiskBudgeting(cov, C=C, d=d)
 CRB.solve()
 print(CRB)
 
 # %%
-inequality_constraints = np.array(
-    [[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0], [1, -1, 0, 0, 1, -1, 0, 0]]
-)
-inequality_values = [-0.3, -0.05]
-expected_returns = [-0.1, 0.05, 0, 0, 0.2, 0.1, 0, -0.1]  # not in the paper
-risk_aversion = 2
+C = np.array([[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0], [1, -1, 0, 0, 1, -1, 0, 0]])
+d = [-0.3, -0.05]
+pi = [-0.1, 0.05, 0, 0, 0.2, 0.1, 0, -0.1]  # not in the paper
+c = 2
 
-CRB = ConstrainedRiskBudgeting(
-    cov,
-    inequality_constraints=inequality_constraints,
-    inequality_values=inequality_values,
-    expected_returns=expected_returns,
-    risk_aversion=risk_aversion,
-)
+CRB = ConstrainedRiskBudgeting(cov, C=C, d=d, pi=pi, c=c)
 CRB.solve()
 print(CRB)
 

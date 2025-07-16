@@ -1,9 +1,8 @@
 import numpy as np
-from typing import Any
 import quadprog
 
 
-def to_column_matrix(x: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
+def to_column_matrix(x):
     """Return x as a matrix columns.
 
     Args:
@@ -30,7 +29,7 @@ def to_column_matrix(x: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
     return x
 
 
-def to_array(x: np.ndarray[Any, Any] | None) -> np.ndarray[Any, Any] | None:
+def to_array(x):
     """Turn a columns or row matrix to an array.
 
     Args:
@@ -49,77 +48,57 @@ def to_array(x: np.ndarray[Any, Any] | None) -> np.ndarray[Any, Any] | None:
     return np.squeeze(np.asarray(x))
 
 
-def quadprog_solve_qp(
-    p: np.ndarray[Any, Any],
-    q: np.ndarray[Any, Any],
-    g: np.ndarray[Any, Any] | None = None,
-    h: np.ndarray[Any, Any] | None = None,
-    a: np.ndarray[Any, Any] | None = None,
-    b: np.ndarray[Any, Any] | None = None,
-    bounds: np.ndarray[Any, Any] | None = None,
-) -> np.ndarray[Any, Any]:
+def quadprog_solve_qp(P, q, G=None, h=None, A=None, b=None, bounds=None):
     """Quadprog helper for solving quadratic programming problems.
 
     Args:
-        p: Quadratic term matrix.
+        P: Quadratic term matrix.
         q: Linear term vector.
-        g: Inequality constraint matrix (optional).
+        G: Inequality constraint matrix (optional).
         h: Inequality constraint vector (optional).
-        a: Equality constraint matrix (optional).
+        A: Equality constraint matrix (optional).
         b: Equality constraint vector (optional).
         bounds: Variable bounds (optional).
 
     Returns:
         Solution vector from quadratic programming solver.
     """
-    n = p.shape[0]
+    n = P.shape[0]
     if bounds is not None:
         identity = np.eye(n)
-        lower_bound = -identity
-        upper_bound = identity
-        if g is None:
-            g = np.vstack([lower_bound, upper_bound])
-            bounds_0 = to_array(bounds[:, 0])
-            bounds_1 = to_array(bounds[:, 1])
-            if bounds_0 is not None and bounds_1 is not None:
-                h = np.array(np.hstack([-bounds_0, bounds_1]))
+        LB = -identity
+        UB = identity
+        if G is None:
+            G = np.vstack([LB, UB])
+            h = np.array(np.hstack([-to_array(bounds[:, 0]), to_array(bounds[:, 1])]))
         else:
-            g = np.vstack([g, lower_bound, upper_bound])
-            bounds_0 = to_array(bounds[:, 0])
-            bounds_1 = to_array(bounds[:, 1])
-            if h is not None and bounds_0 is not None and bounds_1 is not None:
-                h = np.array(np.hstack([h, -bounds_0, bounds_1]))
+            G = np.vstack([G, LB, UB])
+            h = np.array(
+                np.hstack([h, -to_array(bounds[:, 0]), to_array(bounds[:, 1])])
+            )
 
     qp_a = q  # because  1/2 x^T G x - a^T x
-    qp_g = p
-    if a is not None:
-        assert g is not None and h is not None and b is not None
-        qp_c = -np.vstack([a, g]).T
+    qp_G = P
+    if A is not None:
+        qp_C = -np.vstack([A, G]).T
         qp_b = -np.hstack([b, h])
-        meq = a.shape[0]
+        meq = A.shape[0]
     else:  # no equality constraints
-        qp_c = -g.T if g is not None else np.array([[]])
-        qp_b = -h if h is not None else np.array([])
+        qp_C = -G.T
+        qp_b = -h
         meq = 0
-    return np.array(quadprog.solve_qp(qp_g, qp_a, qp_c, qp_b, meq)[0])
+    return quadprog.solve_qp(qp_G, qp_a, qp_C, qp_b, meq)[0]
 
 
-def proximal_polyhedra(
-    y: np.ndarray[Any, Any],
-    c: np.ndarray[Any, Any],
-    d: np.ndarray[Any, Any],
-    bound: np.ndarray[Any, Any],
-    a: np.ndarray[Any, Any] | None = None,
-    b: np.ndarray[Any, Any] | None = None,
-) -> np.ndarray[Any, Any]:
+def proximal_polyhedra(y, C, d, bound, A=None, b=None):
     """Wrapper for projecting a vector on the constrained set.
 
     Args:
         y: Vector to project.
-        c: Constraint matrix.
+        C: Constraint matrix.
         d: Constraint vector.
         bound: Variable bounds.
-        a: Additional constraint matrix (optional).
+        A: Additional constraint matrix (optional).
         b: Additional constraint vector (optional).
 
     Returns:
@@ -127,5 +106,5 @@ def proximal_polyhedra(
     """
     n = len(y)
     return quadprog_solve_qp(
-        np.eye(n), np.array(y), np.array(c), np.array(d), a=a, b=b, bounds=bound
+        np.eye(n), np.array(y), np.array(C), np.array(d), A=A, b=b, bounds=bound
     )
