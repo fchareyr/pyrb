@@ -27,7 +27,7 @@
 - **Covariance matrix:** All algorithms expect a NumPy array for covariance; input validation is strict.
 - **Constraints:** Constrained problems use bounds and linear inequalities (`C`, `d`, `bounds`).
 - **Risk budgets:** Passed as arrays; if `None`, defaults to equal risk.
-- **Expected returns:** Optional, passed as `pi` arrays.
+- **Expected returns:** Optional, passed as `expected_returns` arrays.
 - **Solvers:** Selectable via string argument (`solver="admm_ccd"`, `"admm_qp"`, etc.).
 - **Error handling:** Uses exceptions and logging for failed optimizations (see `ConstrainedRiskBudgeting.solve`).
 

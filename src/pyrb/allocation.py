@@ -333,7 +333,7 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
                 budgets=self.budgets,
                 expected_returns=self.expected_returns,
                 risk_aversion=self.risk_aversion,
-                C=self.risk_aversion,
+                C=self.C,
                 d=self.d,
                 bounds=self.bounds,
                 lambda_log=_lambda,
