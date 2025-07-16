@@ -29,6 +29,8 @@ dependencies = [
     "quadprog>=0.1.13",
     "scipy>=1.16.0",
     "numpy>=2.2.0",
+    "ipykernel>=6.29.5",
+    "jupytext>=1.17.2",
 ]
 
 [dependency-groups]
@@ -42,9 +44,6 @@ dev = [
 line-length = 88
 target-version = "py312"
 fix = true
-exclude = [
-    "notebooks/**/*.ipynb",
-]
 
 [tool.ruff.lint]
 select = [
