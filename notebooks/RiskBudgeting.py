@@ -55,11 +55,7 @@ allocation = pd.DataFrame(
     columns=COLUMNS,
 )
 
-allocation_pct = allocation.copy()
-allocation_pct["optimal weights"] = (allocation_pct["optimal weights"] * 100).round(2)
-allocation_pct["risk contribution"] = (allocation_pct["risk contribution"] * 100).round(2)
-allocation_pct["risk contribution (scaled)"] = (allocation_pct["risk contribution (scaled)"] * 100).round(2)
-allocation_pct
+allocation
 
 # %% [markdown]
 # #### Solving the risk budgeting problem
@@ -86,10 +82,6 @@ allocation = pd.DataFrame(
     columns=COLUMNS,
 )
 
-allocation_pct = allocation.copy()
-allocation_pct["optimal weights"] = (allocation_pct["optimal weights"] * 100).round(2)
-allocation_pct["risk contribution"] = (allocation_pct["risk contribution"] * 100).round(2)
-allocation_pct["risk contribution (scaled)"] = (allocation_pct["risk contribution (scaled)"] * 100).round(2)
-allocation_pct
+allocation
 
 # %%

@@ -35,9 +35,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mypy>=1.17.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "ruff>=0.12.2",
+    "scipy-stubs>=1.16.0.2",
 ]
 
 [tool.ruff]
@@ -71,3 +73,27 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "quadprog",
+    "numba.*",
+]
+ignore_missing_imports = true
