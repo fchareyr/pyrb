@@ -16,7 +16,7 @@
 
 ## Developer Workflow
 - **Install dependencies:**
-  - **Always use `uv` for dependency management. Never use `pip`, `conda`, or `poetry`.**
+  - **Always use `uv` for dependency management. Never use `uv pip`, `pip`, `conda`, or `poetry`.**
   - Install: `uv add git+https://github.com/jcrichard/pyrb`
 - **Run tests:** `pytest`
 - **Lint/format:** `ruff format` and `ruff check --fix`

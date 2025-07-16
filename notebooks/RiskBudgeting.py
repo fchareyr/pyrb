@@ -41,7 +41,7 @@ ERC.solve()
 #  The optimal solution that gives equal risk contributions is:
 
 # %%
-optimal_weights = ERC.x
+optimal_weights = ERC.weights
 risk_contributions = ERC.get_risk_contributions(scale=False)
 risk_contributions_scaled = ERC.get_risk_contributions()
 
@@ -74,7 +74,7 @@ RB = RiskBudgeting(covariance_matrix, budgets)
 RB.solve()
 
 # %%
-optimal_weights = RB.x
+optimal_weights = RB.weights
 risk_contributions = RB.get_risk_contributions(scale=False)
 risk_contributions_scaled = RB.get_risk_contributions()
 

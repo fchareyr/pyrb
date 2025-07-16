@@ -68,10 +68,10 @@ print(CRB)
 # %%
 C = np.array([[0, 0, 0, 0, -1.0, -1.0, -1.0, -1.0], [1, -1, 0, 0, 1, -1, 0, 0]])
 d = [-0.3, -0.05]
-pi = [-0.1, 0.05, 0, 0, 0.2, 0.1, 0, -0.1]  # not in the paper
-c = 2
+expected_returns = [-0.1, 0.05, 0, 0, 0.2, 0.1, 0, -0.1]  # not in the paper
+risk_aversion = 2
 
-CRB = ConstrainedRiskBudgeting(cov, C=C, d=d, pi=pi, c=c)
+CRB = ConstrainedRiskBudgeting(cov, C=C, d=d, expected_returns=expected_returns, risk_aversion=risk_aversion)
 CRB.solve()
 print(CRB)
 
