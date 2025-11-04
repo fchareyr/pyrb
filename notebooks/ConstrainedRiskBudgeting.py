@@ -59,7 +59,7 @@ import pandas as pd
 from pyrb import ConstrainedRiskBudgeting
 
 plt.style.use("tableau-colorblind10")
-plt.rcParams.update({"figure.autolayout": True,"axes.grid": True})
+plt.rcParams.update({"figure.autolayout": True, "axes.grid": True})
 
 # %%
 vol = np.array([0.05, 0.05, 0.07, 0.1, 0.15, 0.15, 0.15, 0.18])
@@ -80,7 +80,7 @@ corr = (
 )
 
 cov = np.outer(vol, vol) * corr
-asset_labels = [f"A{i+1}" for i in range(len(vol))]
+asset_labels = [f"A{i + 1}" for i in range(len(vol))]
 
 # %%
 scenario_specs = [
@@ -99,7 +99,12 @@ scenario_specs = [
     {
         "name": "Add relative allocation",
         "description": "Adds w1 - w2 + w5 - w6 ≥ -5% on top of the high-vol cap.",
-        "C": np.array([[0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0],[1.0, -1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0]]),
+        "C": np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0],
+                [1.0, -1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0],
+            ]
+        ),
         "d": np.array([-0.3, -0.05]),
     },
 ]
@@ -150,25 +155,25 @@ weights_df = pd.DataFrame(
     [res["weights"] for res in scenario_results],
     columns=asset_labels,
     index=summary_df.index,
- )
+)
 
 marginal_df = pd.DataFrame(
     [res["marginal_rc"] for res in scenario_results],
     columns=asset_labels,
     index=summary_df.index,
- )
+)
 
 risk_contrib_df = pd.DataFrame(
     [res["risk_contrib"] for res in scenario_results],
     columns=asset_labels,
     index=summary_df.index,
- )
+)
 
 risk_contrib_pct_df = pd.DataFrame(
     [res["risk_contrib_pct"] for res in scenario_results],
     columns=asset_labels,
     index=summary_df.index,
- )
+)
 
 constraint_df = pd.DataFrame(
     [
@@ -178,14 +183,16 @@ constraint_df = pd.DataFrame(
         for res in scenario_results
     ],
     index=summary_df.index,
- )
+)
 
 summary_display = summary_df.copy()
 for col in ["Total risk (volatility)", "λ*", "Sum of weights"]:
     summary_display[col] = summary_display[col].astype(float).round(4)
 
+
 def format_df(df, formatter):
     return df.apply(lambda col: col.map(formatter))
+
 
 weights_display = format_df(weights_df, lambda x: f"{x:.2%}")
 risk_contrib_display = format_df(risk_contrib_df, lambda x: f"{x:.4f}")
@@ -209,7 +216,9 @@ display(marginal_display)
 
 if not constraint_df.empty:
     constraint_display = constraint_df.copy().astype(float).round(4)
-    constraint_display.columns = [f"Constraint {i+1}" for i in range(constraint_display.shape[1])]
+    constraint_display.columns = [
+        f"Constraint {i + 1}" for i in range(constraint_display.shape[1])
+    ]
     print("\nConstraint evaluations Cw")
     display(constraint_display)
 
