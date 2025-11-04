@@ -11,15 +11,15 @@
   - `solvers.py`: Numerical solvers for optimization (ADMM, CCD, QP).
   - `tools.py`, `validation.py`: Utility and input validation functions.
   - `settings.py`: Global constants for optimization routines.
-- **Tests:** Located in `tests/`, using `pytest`. Example: `test_risk_budgeting.py` covers all major allocation classes.
+- **Tests:** Located in `tests/`, using `uv run pytest`. Example: `test_risk_budgeting.py` covers all major allocation classes.
 - **Notebooks:** `notebooks/` contains example workflows and data for interactive exploration.
 
 ## Developer Workflow
 - **Install dependencies:**
   - **Always use `uv` for dependency management. Never use `uv pip`, `pip`, `conda`, or `poetry`.**
   - Install: `uv add git+https://github.com/jcrichard/pyrb`
-- **Run tests:** `pytest`
-- **Lint/format:** `ruff format` and `ruff check --fix`
+- **Run tests:** `uv run pytest`
+- **Lint/format:** `uv run ruff format` and `uv run ruff check --fix`
 - **CI:** GitHub Actions runs tests and linting on push/PR; Dependabot updates dependencies.
 
 ## Project-Specific Patterns
