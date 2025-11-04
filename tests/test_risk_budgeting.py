@@ -62,6 +62,7 @@ def test_cerb():
     np.testing.assert_almost_equal(CRB.get_risk_contributions()[1], 0.2455, decimal=5)
     np.testing.assert_almost_equal(np.sum(CRB.weights[1]), 0.2)
 
+
 def test_rb_with_equal_budgets():
     equal_budgets = [1.0 / NUMBER_OF_ASSET] * NUMBER_OF_ASSET
     RB = RiskBudgeting(COVARIANCE_MATRIX, equal_budgets)
@@ -82,7 +83,12 @@ def test_cerb_with_expected_returns():
     d = [-0.3]
 
     CRB = ConstrainedRiskBudgeting(
-        COVARIANCE_MATRIX, budgets=RISK_BUDGETS, expected_returns=EXPECTED_RETURNS, bounds=BOUNDS, C=C, d=d
+        COVARIANCE_MATRIX,
+        budgets=RISK_BUDGETS,
+        expected_returns=EXPECTED_RETURNS,
+        bounds=BOUNDS,
+        C=C,
+        d=d,
     )
     CRB.solve()
 
