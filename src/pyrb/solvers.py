@@ -38,7 +38,9 @@ def accelerate(_varphi, r, s, u, alpha=10, tau=2):
     "Tuple((float64[:], float64[:], float64))(float64[:], float64, float64[:], float64, float64, float64[:], float64[:], float64[:], float64[:,:], float64, float64[:,:])",
     nopython=True,
 )
-def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, expected_returns, bounds, lambda_log, cov):
+def _cycle(
+    x, c, var, _varphi, sigma_x, Sx, budgets, expected_returns, bounds, lambda_log, cov
+):
     """
     Internal numba function for computing one cycle of the CCD algorithm.
 
@@ -59,7 +61,13 @@ def _cycle(x, c, var, _varphi, sigma_x, Sx, budgets, expected_returns, bounds, l
 
 
 def solve_rb_ccd(
-    cov, budgets=None, expected_returns=None, risk_aversion=1.0, bounds=None, lambda_log=1.0, _varphi=0.0
+    cov,
+    budgets=None,
+    expected_returns=None,
+    risk_aversion=1.0,
+    bounds=None,
+    lambda_log=1.0,
+    _varphi=0.0,
 ):
     """Solve the risk budgeting problem using cyclical coordinate descent.
 
@@ -122,7 +130,17 @@ def solve_rb_ccd(
 
     while not cvg:
         x, sx, sigma_x = _cycle(
-            x, risk_aversion, var, _varphi, sigma_x, sx, budgets, expected_returns, bounds, lambda_log, cov
+            x,
+            risk_aversion,
+            var,
+            _varphi,
+            sigma_x,
+            sx,
+            budgets,
+            expected_returns,
+            bounds,
+            lambda_log,
+            cov,
         )
         cvg = np.sum(np.array(x - x0) ** 2) <= CCD_CONVERGENCE_TOL
         x0 = x.copy()
