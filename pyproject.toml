@@ -32,6 +32,8 @@ dependencies = [
     "ipykernel>=6.29.5",
     "jupytext>=1.17.2",
     "matplotlib>=3.10.7",
+    "pip>=25.3",
+    "notebook>=7.4.7",
 ]
 
 [dependency-groups]

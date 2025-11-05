@@ -159,3 +159,6 @@ cython_debug/
 #  project, it is suggested to ignore files and directories, which are typically IDE-specific.
 #  User-specific stuff
 .idea/
+
+# HTML reports
+*.html

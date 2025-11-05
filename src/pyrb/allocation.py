@@ -239,6 +239,7 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
         d=None,
         bounds=None,
         solver="admm_ccd",
+        target_volatility=None,
     ):
         """Solve the constrained risk budgeting problem.
 
@@ -281,6 +282,11 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
         validation.check_bounds(bounds, self.n)
         validation.check_constraints(C, d, self.n)
         self.solver = solver
+        if target_volatility is not None:
+            target_volatility = float(target_volatility)
+            if target_volatility <= 0 or np.isnan(target_volatility):
+                raise ValueError("target_volatility must be a positive finite number.")
+        self.target_volatility = target_volatility
         if (self.solver == "admm_qp") and (self.expected_returns is not None):
             logging.warning(
                 "The solver is set to 'admm_qp'. The risk measure is the mean variance in this case. The optimal "
@@ -288,20 +294,29 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
             )
 
     def __str__(self):
+        summary = super().__str__()
+        if self.target_volatility is not None:
+            summary += f"target sigma: {np.round(self.target_volatility * 100, 4)}\n"
         if self.C is not None:
             return (
                 f"solver: {self.solver}\n"
                 + "----------------------------\n"
-                + super().__str__()
+                + summary
                 + f"C@x: {self.C @ self.weights}\n"
             )
-        else:
-            return super().__str__()
+        return summary
 
     def _sum_to_one_constraint(self, _lambda):
         weights = self._lambda_solve(_lambda)
         sum_weights = sum(weights)
         return sum_weights - 1
+
+    def _target_volatility_constraint(self, _lambda):
+        weights = self._lambda_solve(_lambda)
+        weights = np.asarray(weights, dtype=float)
+        variance = float(weights @ self.cov @ weights)
+        volatility = float(np.sqrt(max(variance, 0.0)))
+        return volatility - self.target_volatility
 
     def _lambda_solve(self, _lambda):
         if (
@@ -342,8 +357,13 @@ class ConstrainedRiskBudgeting(RiskBudgetingWithER):
 
     def solve(self):
         try:
+            constraint_function = (
+                self._target_volatility_constraint
+                if self.target_volatility is not None
+                else self._sum_to_one_constraint
+            )
             lambda_star = optimize.bisect(
-                self._sum_to_one_constraint,
+                constraint_function,
                 0,
                 BISECTION_UPPER_BOUND,
                 maxiter=MAX_ITER_BISECTION,
